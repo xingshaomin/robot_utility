@@ -4,7 +4,7 @@ import robot.GenUtil;
 public class ModifyDomain 
 {
     public static void main( String[] args){
-    	String cmd = GenUtil.getCurlCmd(GenUtil.POST, "/conf/domains/b8e42397b1a249b7a968c7c30f67bb38");
+    	String cmd = GenUtil.getCurlCmd(GenUtil.POST, "/conf/domains/851a1e94c28a44b39f8860def309c1e4");
     	System.out.println(cmd);
     }
 }
