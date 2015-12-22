@@ -28,6 +28,8 @@ import com.easemob.weichat.models.message.EasemobMessageBody;
 import com.easemob.weichat.models.message.EasemobTxtMessageBody;
 import com.easemob.weichat.service.robot.exception.RobotException;
 
+import lombok.extern.slf4j.Slf4j;
+
 
 /**
  * 用于做版本升级时机器人数据migration
@@ -35,6 +37,7 @@ import com.easemob.weichat.service.robot.exception.RobotException;
  * @author shawn
  * 
  */
+@Slf4j
 @SpringBootApplication
 @ComponentScan("com.easemob.weichat")
 public class RobotMigration {
@@ -49,11 +52,23 @@ public class RobotMigration {
 		// get application context
 		ConfigurableApplicationContext context = sa.run(args);
 		
-		// migrate all menu
+		// 1. migrate all menu
 //		migrateMenu(args, context);
 		
-		// delete all rules except menu
-		deleteAllRules(context);
+		// 2. delete all rules except menu
+//		deleteAllRules(context);
+		
+		// 3. export data
+		// "Java -jar kefu-robot-migration.jar /user/local/ 20151101 20151130 1441"
+		if(args.length != 4){
+            throw new RobotException(INVALID_PARAM);
+        }
+        String path = args[0];
+        String start = args[1];
+        String end = args[2];
+        String tenantId = args[3];
+//        exportAllTenantsData(context, path, start, end);
+        exportDataByTenantId(context, Integer.parseInt(tenantId), path, start, end);
     }
 
     private static void deleteAllRules(ConfigurableApplicationContext context) {
@@ -77,7 +92,7 @@ public class RobotMigration {
 		}
     }
     
-    private static void exportData(ConfigurableApplicationContext context, String path, String start, String end) {
+    private static void exportAllTenantsData(ConfigurableApplicationContext context, String path, String start, String end) {
         ExportDataService exportService = context.getBean(ExportDataService.class);
         int count = exportService.getTotalCount(start, end);
         final int pageSize = 1000;
@@ -87,19 +102,42 @@ public class RobotMigration {
         }
         for (int i = 0; i < pages; i++) {
             List<ServiceSession> ssList = exportService.getServiceSessions(i, pageSize, start, end);
-            for (ServiceSession serviceSession : ssList) {
-                List<ChatMessage> msgs = exportService.getChatMessageByServiceSessionId(serviceSession.getTenantId(), serviceSession.getServiceSessionId());
-                File d = new File(path+"/"+serviceSession.getTenantId());
-                if(!d.exists()){
-                    d.mkdirs();
-                };
-                Date date = serviceSession.getCreateDatetime();
-                SimpleDateFormat formatter1 = new SimpleDateFormat("yyyyMMdd");
-                SimpleDateFormat formatter2 = new SimpleDateFormat("yyyyMMddHHmmssSSS");
-                String sencondPath = formatter1.format(date);
-                String fileName = formatter2.format(date);
-                writeToFile(d.getAbsolutePath(), sencondPath, fileName, msgs);
-            }
+            exportServiceSessionList(path, exportService, ssList);
+        }
+    }
+    
+    private static void exportDataByTenantId(ConfigurableApplicationContext context, int tenantId, String path, String start, String end) {
+        ExportDataService exportService = context.getBean(ExportDataService.class);
+        int count = exportService.getTotalCountByTenantId(tenantId, start, end);
+        log.info("total service session is {}", count);
+        final int pageSize = 1000;
+        int pages = count/pageSize;
+        if(count % pageSize != 0){
+            pages++;
+        }
+        for (int i = 0; i < pages; i++) {
+            log.info("start export the {} service session", (pages+1) * 1000);
+            List<ServiceSession> ssList = exportService.getServiceSessionsByTenantId(tenantId, i, pageSize, start, end);
+            exportServiceSessionList(path, exportService, ssList);
+        }
+    }
+
+    private static void exportServiceSessionList(String path, ExportDataService exportService,
+            List<ServiceSession> ssList) {
+        for (ServiceSession serviceSession : ssList) {
+            log.info("start exporting service session {}", serviceSession.getServiceSessionId());
+            List<ChatMessage> msgs = exportService.getChatMessageByServiceSessionId(serviceSession.getTenantId(), serviceSession.getServiceSessionId());
+            File d = new File(path+"/"+serviceSession.getTenantId());
+            if(!d.exists()){
+                d.mkdirs();
+            };
+            Date date = serviceSession.getCreateDatetime();
+            SimpleDateFormat formatter1 = new SimpleDateFormat("yyyyMMdd");
+            SimpleDateFormat formatter2 = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+            String sencondPath = formatter1.format(date);
+            String fileName = formatter2.format(date);
+            writeToFile(d.getAbsolutePath(), sencondPath, fileName, msgs);
+            log.info("finish writting service session {} into {}", serviceSession.getServiceSessionId(), d.getAbsolutePath() + "/" + sencondPath);
         }
     }
     

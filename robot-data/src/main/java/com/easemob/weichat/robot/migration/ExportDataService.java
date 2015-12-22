@@ -40,7 +40,15 @@ public class ExportDataService {
         return serviceSessionRepositoryProvider.getServiceSessionList(page, pageSize, startDate, endDate);
     }
     
+    public List<ServiceSession> getServiceSessionsByTenantId(int tenantId, int page, int pageSize, String startDate, String endDate){
+        return serviceSessionRepositoryProvider.getServiceSessionListByTenantId(tenantId, page, pageSize, startDate, endDate);
+    }
+    
     public int getTotalCount(String startDate, String endDate){
         return serviceSessionRepositoryProvider.getTotalCount(startDate, endDate);
+    }
+    
+    public int getTotalCountByTenantId(int tenantId, String startDate, String endDate){
+        return serviceSessionRepositoryProvider.getTotalCountByTenantId(tenantId, startDate, endDate);
     }
 }

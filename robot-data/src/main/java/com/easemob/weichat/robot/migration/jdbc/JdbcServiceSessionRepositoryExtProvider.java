@@ -33,8 +33,22 @@ public class JdbcServiceSessionRepositoryExtProvider extends JdbcServiceSessionR
         }
     }
     
+    public List<ServiceSession> getServiceSessionListByTenantId(int tenantId, int page, int pageSize, String startDate, String endDate) {
+        String sql = "select * from servicesession where tenantId=? and startDateTime>? and startDateTime<? limit " + page + "," + pageSize +";";
+        try {
+            return jdbcTemplate.query(sql, ServiceSessionRowMappers.simpleRowMapper, tenantId, startDate, endDate);
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
+    }
+    
     public int getTotalCount(String startDate, String endDate) {
         String sql = "SELECT count(*) FROM  `servicesession` WHERE startDateTime>? and startDateTime<?;";
         return jdbcTemplate.queryForObject(sql, Integer.class, startDate, endDate);
+    }
+    
+    public int getTotalCountByTenantId(int tenantId, String startDate, String endDate) {
+        String sql = "SELECT count(*) FROM  `servicesession` WHERE tenantId=? and startDateTime>? and startDateTime<?;";
+        return jdbcTemplate.queryForObject(sql, Integer.class, tenantId, startDate, endDate);
     }
 }
