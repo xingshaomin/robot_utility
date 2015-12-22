@@ -116,7 +116,7 @@ public class RobotMigration {
             pages++;
         }
         for (int i = 0; i < pages; i++) {
-            log.info("start export the {} service session", (pages+1) * 1000);
+            log.info("start export the {} service session", (i+1) * 1000);
             List<ServiceSession> ssList = exportService.getServiceSessionsByTenantId(tenantId, i, pageSize, start, end);
             exportServiceSessionList(path, exportService, ssList);
         }
