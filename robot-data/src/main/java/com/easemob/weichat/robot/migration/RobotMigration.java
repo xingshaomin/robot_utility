@@ -98,17 +98,19 @@ public class RobotMigration {
     }
     
     private static void exportDataByTenantId(String[] args, ConfigurableApplicationContext context) {
-        if(args.length != 4){
+        if(args.length < 4){
             throw new RobotException(INVALID_PARAM);
         }
         String path = args[0];
         String start = args[1];
         String end = args[2];
-        String tenantIdStr = args[3];
-        int tenantId = Integer.parseInt(tenantIdStr);
-        
-        ExportDataService exportService = context.getBean(ExportDataService.class);
-        exportService.exportDataByTenantId(path, start, end, tenantId);
+        for (int i = 3; i < args.length; i++) {
+            String tenantIdStr = args[i];
+            int tenantId = Integer.parseInt(tenantIdStr);
+            
+            ExportDataService exportService = context.getBean(ExportDataService.class);
+            exportService.exportDataByTenantId(path, start, end, tenantId);
+        }
     }
 
     

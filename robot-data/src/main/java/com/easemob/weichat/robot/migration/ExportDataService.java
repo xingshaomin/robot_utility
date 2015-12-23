@@ -72,7 +72,7 @@ public class ExportDataService {
             pages++;
         }
         for (int i = 0; i < pages; i++) {
-            log.info("start export the {} service session", (i+1) * 1000);
+            log.info("start export the {} service session", (i+1) * pageSize);
             List<ServiceSession> ssList = getServiceSessionsByTenantId(tenantId, i, pageSize, start, end);
             exportServiceSessionList(path, ssList);
         }
