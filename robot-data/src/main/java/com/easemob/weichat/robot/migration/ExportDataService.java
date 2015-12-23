@@ -66,7 +66,7 @@ public class ExportDataService {
     public void exportDataByTenantId(String path, String start, String end, int tenantId) {
         int count = getTotalCountByTenantId(tenantId, start, end);
         log.info("total service session is {}", count);
-        final int pageSize = 1000;
+        final int pageSize = count;
         int pages = count/pageSize;
         if(count % pageSize != 0){
             pages++;
