@@ -60,15 +60,8 @@ public class RobotMigration {
 		
 		// 3. export data
 		// "Java -jar kefu-robot-migration.jar /user/local/ 20151101 20151130 1441"
-		if(args.length != 4){
-            throw new RobotException(INVALID_PARAM);
-        }
-        String path = args[0];
-        String start = args[1];
-        String end = args[2];
-        String tenantId = args[3];
-//        exportAllTenantsData(context, path, start, end);
-        exportDataByTenantId(context, Integer.parseInt(tenantId), path, start, end);
+//      exportAllTenantsData(args, context);
+        exportDataByTenantId(args, context);
     }
 
     private static void deleteAllRules(ConfigurableApplicationContext context) {
@@ -92,86 +85,31 @@ public class RobotMigration {
 		}
     }
     
-    private static void exportAllTenantsData(ConfigurableApplicationContext context, String path, String start, String end) {
+    private static void exportAllTenantsData(String[] args, ConfigurableApplicationContext context) {
+        if(args.length != 3){
+            throw new RobotException(INVALID_PARAM);
+        }
+        String path = args[0];
+        String start = args[1];
+        String end = args[2];
+        
         ExportDataService exportService = context.getBean(ExportDataService.class);
-        int count = exportService.getTotalCount(start, end);
-        final int pageSize = 1000;
-        int pages = count/pageSize;
-        if(count % pageSize != 0){
-            pages++;
-        }
-        for (int i = 0; i < pages; i++) {
-            List<ServiceSession> ssList = exportService.getServiceSessions(i, pageSize, start, end);
-            exportServiceSessionList(path, exportService, ssList);
-        }
+        exportService.exportAllTenantsData(path, start, end);
     }
     
-    private static void exportDataByTenantId(ConfigurableApplicationContext context, int tenantId, String path, String start, String end) {
+    private static void exportDataByTenantId(String[] args, ConfigurableApplicationContext context) {
+        if(args.length != 4){
+            throw new RobotException(INVALID_PARAM);
+        }
+        String path = args[0];
+        String start = args[1];
+        String end = args[2];
+        String tenantIdStr = args[3];
+        int tenantId = Integer.parseInt(tenantIdStr);
+        
         ExportDataService exportService = context.getBean(ExportDataService.class);
-        int count = exportService.getTotalCountByTenantId(tenantId, start, end);
-        log.info("total service session is {}", count);
-        final int pageSize = 1000;
-        int pages = count/pageSize;
-        if(count % pageSize != 0){
-            pages++;
-        }
-        for (int i = 0; i < pages; i++) {
-            log.info("start export the {} service session", (i+1) * 1000);
-            List<ServiceSession> ssList = exportService.getServiceSessionsByTenantId(tenantId, i, pageSize, start, end);
-            exportServiceSessionList(path, exportService, ssList);
-        }
+        exportService.exportDataByTenantId(path, start, end, tenantId);
     }
 
-    private static void exportServiceSessionList(String path, ExportDataService exportService,
-            List<ServiceSession> ssList) {
-        for (ServiceSession serviceSession : ssList) {
-            log.info("start exporting service session {}", serviceSession.getServiceSessionId());
-            List<ChatMessage> msgs = exportService.getChatMessageByServiceSessionId(serviceSession.getTenantId(), serviceSession.getServiceSessionId());
-            File d = new File(path+"/"+serviceSession.getTenantId());
-            if(!d.exists()){
-                d.mkdirs();
-            };
-            Date date = serviceSession.getCreateDatetime();
-            SimpleDateFormat formatter1 = new SimpleDateFormat("yyyyMMdd");
-            SimpleDateFormat formatter2 = new SimpleDateFormat("yyyyMMddHHmmssSSS");
-            String sencondPath = formatter1.format(date);
-            String fileName = formatter2.format(date);
-            writeToFile(d.getAbsolutePath(), sencondPath, fileName, msgs);
-            log.info("finish writting service session {} into {}", serviceSession.getServiceSessionId(), d.getAbsolutePath() + "/" + sencondPath);
-        }
-    }
     
-    private static void writeToFile(String path, String sencondPath, String filename, List<ChatMessage> messageList){
-        try {
-            File d = new File(path+"/"+sencondPath);
-            if(!d.exists()){
-                d.mkdirs();
-            };
-            BufferedWriter writer = new BufferedWriter(new FileWriter(
-                    new File(String.format(d.getAbsolutePath() + "/" + "%s.txt", filename))));
-            for (ChatMessage chatMessage : messageList) {
-                String from = chatMessage.getFromUser().getUserType().toString();
-                String fromUserId = chatMessage.getFromUser().getUserId();
-                String msgId = chatMessage.getMsgId();
-                SimpleDateFormat formatter3 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS");
-                String createTime = formatter3.format(chatMessage.getCreateDateTime());
-                for (EasemobMessageBody messageBody : chatMessage.getBody().getBodies()) {
-                    String type = messageBody.getType();
-                    String content = null;
-                    if(type.equals("txt")){
-                        EasemobTxtMessageBody txt = (EasemobTxtMessageBody)messageBody;
-                        content =txt.getMsg();
-                    } else if (type.equals("img")){
-                        EasemobImageMessageBody img = (EasemobImageMessageBody)messageBody;
-                        content = img.getUri();
-                    }
-                    String chat = String.format("%36s |%24s |%36s |%10s | %s", msgId, createTime, fromUserId, from, content);   
-                    writer.write(chat + "\r\n");
-                }
-            }
-            writer.close();
-        } catch (Exception e) {
-
-        }
-    }
 }
