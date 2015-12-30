@@ -29,34 +29,57 @@ import lombok.extern.slf4j.Slf4j;
 @ComponentScan("com.easemob.weichat")
 public class RobotMigration {
 	
-	public static void main(String[] args){
+	private static ConfigurableApplicationContext context;
+
+    public static void main(String[] args){
 	    // 启动spring application
 		SpringApplication sa = new SpringApplication(RobotMigration.class);
 		// disable jetty
 		sa.setWebEnvironment(false);
-		// get application context
-		ConfigurableApplicationContext context = sa.run(args);
+		context = sa.run(args);
 		
 		// 1. migrate all menu
-//		migrateMenu(args, context);
+//		migrateMenu(args);
 		
 		// 2. delete all rules except menu
-//		deleteAllRules(context);
+//		deleteAllRules();
 		
 		// 3. export data
 		// "Java -jar kefu-robot-migration.jar /user/local/ 20151101 20151130 1441"
-//      exportAllTenantsData(args, context);
+//      exportAllTenantsData(args);
 		
 		// 4. export data by tenantId
-//      exportDataByTenantId(args, context);
+//      exportDataByTenantId(args);
 		
 		// 5. migrate xiaoi to ES
-		migrateToES(args, context);
+//		migrateToES(args);
+		
+		// 6. all in one migration for 29
+		migrateAllDataInRobotDbByTenantId(args);
+		migrateMenuByTenantId(args);
+		migrateToES(args);
+		
     }
 	
-	private static void migrateToES(String[] args, ConfigurableApplicationContext context){
-	    String COMMAND_LINE = "Java -jar kefu-robot-data.jar 1441";
-	    String INVALID_PARAM = "invalid parameter, the command should be like " + COMMAND_LINE;
+	/**
+     * @param args
+     */
+    private static void migrateAllDataInRobotDbByTenantId(String[] args) {
+        String INVALID_PARAM = "Good Examples: " + "Java -jar kefu-robot-data.jar 1441";
+        if(args.length < 1){
+            throw new RobotException(INVALID_PARAM);
+        }
+        
+        RobotMigrateAllDataService dataService = context.getBean(RobotMigrateAllDataService.class);
+        for (int i = 0; i < args.length; i++) {
+            String tenantIdStr = args[i];
+            int tenantId = Integer.parseInt(tenantIdStr);
+            dataService.migrateAlldata(tenantId);
+        }
+    }
+
+    private static void migrateToES(String[] args){
+	    String INVALID_PARAM = "Good Examples: " + "Java -jar kefu-robot-data.jar 1441";
 	    if(args.length < 1){
             throw new RobotException(INVALID_PARAM);
         }
@@ -68,32 +91,27 @@ public class RobotMigration {
         }
 	}
 
-    private static void deleteAllRules(ConfigurableApplicationContext context) {
+    private static void deleteAllRules() {
         RobotRulesDataSerivce dataService = context.getBean(RobotRulesDataSerivce.class);
 		dataService.deleteAllRules(1441);
     }
 
-    private static void migrateMenu(String[] args, ConfigurableApplicationContext context) {
-        String COMMAND_LINE = "Java -jar kefu-robot-migration.jar -v 29";
-        String INVALID_PARAM = "invalid parameter, the command should be like " + COMMAND_LINE;
+    private static void migrateMenuByTenantId(String[] args) {
+        String INVALID_PARAM = "Good Examples: " + "Java -jar kefu-robot-migration.jar 1441";
         RobotMenuMigrationSerivce migrationService = context.getBean(RobotMenuMigrationSerivce.class);
 
-		if(args.length != 2){
+		if(args.length < 1){
 			throw new RobotException(INVALID_PARAM);
 		}
-		String option = args[0];
-		String currentVersion = args[1];
-		// only do migration when the version is 29
-		if("-v".equals(option) && "29".equals(currentVersion)){
-			migrationService.doMigrationFrom23To29();
-		} else {
-			throw new RobotException(INVALID_PARAM);
+		for (int i = 0; i < args.length; i++) {
+		    String tenantIdStr = args[0];
+		    int tenantId = Integer.parseInt(tenantIdStr);
+		    migrationService.doMigrationFrom23To29ByTenantId(tenantId);
 		}
     }
     
-    private static void exportAllTenantsData(String[] args, ConfigurableApplicationContext context) {
-        String COMMAND_LINE = "Java -jar kefu-robot-migration.jar /path/for/data '2015-11-01 00:00:00' '2015-11-30 00:59:59' ";
-        String INVALID_PARAM = "invalid parameter, the command should be like " + COMMAND_LINE;
+    private static void exportAllTenantsData(String[] args) {
+        String INVALID_PARAM = "Good Examples: " + "Java -jar kefu-robot-migration.jar /path/for/data '2015-11-01 00:00:00' '2015-11-30 23:59:59' ";
         if(args.length != 3){
             throw new RobotException(INVALID_PARAM);
         }
@@ -105,9 +123,8 @@ public class RobotMigration {
         exportService.exportAllTenantsData(path, start, end);
     }
     
-    private static void exportDataByTenantId(String[] args, ConfigurableApplicationContext context) {
-        String COMMAND_LINE = "Java -jar kefu-robot-migration.jar /path/for/data '2015-11-01 00:00:00' '2015-11-30 00:59:59' 1441 ... ";
-        String INVALID_PARAM = "invalid parameter, the command should be like " + COMMAND_LINE;
+    private static void exportDataByTenantId(String[] args) {
+        String INVALID_PARAM = "Good Examples: " + "Java -jar kefu-robot-migration.jar /path/for/data '2015-11-01 00:00:00' '2015-11-30 00:59:59' 1441 ... ";
         if(args.length < 4){
             throw new RobotException(INVALID_PARAM);
         }

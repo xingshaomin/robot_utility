@@ -58,6 +58,28 @@ public class RobotMenuMigrationSerivce{
 			logger.info("================end==========");
 		}
 	}
+	
+	public void doMigrationFrom23To29ByTenantId(int tenantId) {
+	    logger.info("start migration from 23 to 29 for tenant {}", tenantId);
+	    logger.info(" ");
+	    logger.info("================start ==========");
+	    logger.info("fix tenant {}", tenantId);
+	    int totalCount = robotMenuService.getRootMenuTotalCount(tenantId);
+	    logger.info("tenant {} total menu count is {}", tenantId, totalCount);
+	    Page<RobotMenu> menus = provider.findRootMenuByParentId(tenantId, new PageRequest(0, 1000));
+	    for (RobotMenu robotMenu : menus) {
+	        robotMenu.setRootMenuId(robotMenu.getMenuId());
+	        robotMenu.setLevel(0);
+	        int affected = provider.update(robotMenu.getMenuName(), robotMenu.getParentMenuId(), robotMenu.getLevel(), robotMenu.getRootMenuId(), robotMenu.getMenuDesc(), robotMenu.getMenuId());
+	        if(affected > 0){
+	            logger.info("successfully updated menu {} for level and rootMenuId", robotMenu);
+	        } else {
+	            logger.info("no change for menu {}", robotMenu);
+	        }
+	        doInChildren(tenantId, robotMenu.getMenuId(), robotMenu.getMenuId(), 1);
+	    }
+	    logger.info("================end==========");
+	}
 
 	/**
      * 计算29版本robot_menu中子菜单的新字段level和rootMenuId的值并更新
