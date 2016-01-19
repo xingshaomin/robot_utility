@@ -18,9 +18,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 
+import com.easemob.weichat.models.entity.robot.RobotMenu;
 import com.easemob.weichat.models.entity.robot.RobotMenuRuleItem;
 import com.easemob.weichat.models.entity.robot.RobotRuleGroup;
+import com.easemob.weichat.models.util.JSONUtil;
 import com.easemob.weichat.service.robot.exception.RobotException;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -80,20 +83,20 @@ public class RobotMigration {
             for (int i = 0; i < args.length; i++) {
                 String tenantIdStr = args[i];
                 int tenantId = Integer.parseInt(tenantIdStr);
-                menuService.migrateMenuByTennantId(tenantId);
-                migrateMenuRuleItem(dataService, groupService, tenantId);
+                migrateMenuRuleItem(dataService, groupService, menuService, tenantId);
             }
         } else {
             // all tenants
             for (int i = 0; i < 20000; i++) {
-                menuService.migrateMenuByTennantId(i);
-                migrateMenuRuleItem(dataService, groupService, i);
+                migrateMenuRuleItem(dataService, groupService, menuService, i);
             }
         }
     }
 
     private static void migrateMenuRuleItem(RobotMenuRuleItemDataService dataService,
-            RobotRulesDataSerivce groupService, int tenantId) {
+            RobotRulesDataSerivce groupService, RobotMenuDataSerivce menuService, int tenantId) {
+        menuService.migrateMenuByTennantId(tenantId);
+        
         Map<String, List<String>> rules = new HashMap<String, List<String>>();
         List<RobotMenuRuleItem> list = dataService.getMenuRuleItemByTenantId(tenantId);
         if(list == null || list.isEmpty()){
@@ -110,12 +113,16 @@ public class RobotMigration {
             rules.put(menuId, questionList);
         }
         
-        for (String answer : rules.keySet()) {
-            List<String> questions = rules.get(answer);
+        for (String menuId : rules.keySet()) {
+            List<String> questions = rules.get(menuId);
             if(questions != null && !questions.isEmpty()) {
                 RobotRuleGroup group = new RobotRuleGroup();
                 group.setTenantId(tenantId);
-                groupService.createRuleGroup(tenantId, group, questions.toArray(new String[questions.size()]), new String[]{answer});
+                RobotMenu menu = menuService.getRobotMenuById(menuId);
+                ObjectNode json = JSONUtil.getObjectMapper().createObjectNode();
+                json.put("menuId", menuId);
+                json.put("menuName", menu.getMenuName());
+                groupService.createRuleGroup(tenantId, group, questions.toArray(new String[questions.size()]), new String[]{json.toString()});
             }
         }
     }

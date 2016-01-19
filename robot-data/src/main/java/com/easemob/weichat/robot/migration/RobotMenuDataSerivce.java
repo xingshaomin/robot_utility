@@ -39,5 +39,9 @@ public class RobotMenuDataSerivce {
             }
         }
     }
+    
+    public RobotMenu getRobotMenuById(String menuId){
+       return provider.findByMenuId(menuId);
+    }
 
 }
