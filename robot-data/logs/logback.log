@@ -1,0 +1,43 @@
+Started RobotMigration in 6.16 seconds (JVM running for 6.959)
+saved menu RobotMenu(id=185, menuId=e48715fda167448b9da142d8a78323ab, parentMenuId=7e1fe6feb34d4b55a201784611b367b8, tenantId=1441, level=3, rootMenuId=678530c1f8cf4ab2bc95d6638441eb84, menuName=ww, menuAnswerType=0, menuDesc=, hasTransferSubmenu=false, createdTime=2016-01-15 14:05:55.0, lastUpdatedTime=2016-01-15 14:06:03.0, children=null, isMatch=false) for tenant 1441 
+saved menu RobotMenu(id=186, menuId=441699295af445eb8790e76303ca61e4, parentMenuId=7e1fe6feb34d4b55a201784611b367b8, tenantId=1441, level=3, rootMenuId=678530c1f8cf4ab2bc95d6638441eb84, menuName=55, menuAnswerType=0, menuDesc=, hasTransferSubmenu=false, createdTime=2016-01-15 14:06:06.0, lastUpdatedTime=2016-01-15 14:06:06.0, children=null, isMatch=false) for tenant 1441 
+saved menu RobotMenu(id=183, menuId=9d6b9a5f3ba44bb892c2ddb19db121eb, parentMenuId=a1549c9d274f47e6899f9823727971e6, tenantId=1441, level=3, rootMenuId=678530c1f8cf4ab2bc95d6638441eb84, menuName=2222, menuAnswerType=0, menuDesc=, hasTransferSubmenu=false, createdTime=2016-01-15 14:00:36.0, lastUpdatedTime=2016-01-15 14:00:36.0, children=null, isMatch=false) for tenant 1441 
+Closing org.springframework.context.annotation.AnnotationConfigApplicationContext@38c5cc4c: startup date [Tue Jan 19 20:23:13 CST 2016]; root of context hierarchy
+Closing JPA EntityManagerFactory for persistence unit 'default'
+Starting RobotMigration on shawns-MacBook-Pro.local with PID 43994 (/Users/shawn/mygit/robot_utility/robot-data/target/classes started by shawn in /Users/shawn/mygit/robot_utility/robot-data)
+No active profile set, falling back to default profiles: default
+HV000001: Hibernate Validator 5.2.2.Final
+Refreshing org.springframework.context.annotation.AnnotationConfigApplicationContext@2fd6b6c7: startup date [Tue Jan 19 20:26:38 CST 2016]; root of context hierarchy
+Building JPA container EntityManagerFactory for persistence unit 'default'
+HHH000204: Processing PersistenceUnitInfo [
+	name: default
+	...]
+HHH000412: Hibernate Core {4.3.11.Final}
+HHH000206: hibernate.properties not found
+HHH000021: Bytecode provider name : javassist
+HCANN000001: Hibernate Commons Annotations {4.0.5.Final}
+HHH000400: Using dialect: org.hibernate.dialect.MySQL5Dialect
+HHH000397: Using ASTQueryTranslatorFactory
+[DEPRECATION] Encountered positional parameter near line 1, column 84 in HQL: [select m from com.easemob.weichat.models.entity.robot.RobotMenu m where m.tenantId=? and m.level=0].  Positional parameter are considered deprecated; use named parameters or JPA-style positional parameters instead.
+[DEPRECATION] Encountered positional parameter near line 1, column 91 in HQL: [select count(m) from com.easemob.weichat.models.entity.robot.RobotMenu m where m.tenantId=? and m.level=0].  Positional parameter are considered deprecated; use named parameters or JPA-style positional parameters instead.
+[Dreaming Celestial] loaded [], sites []
+connected to ElasticSearch server at:127.0.0.1 port:9300
+add sys default answer:让我想想怎么回答你~
+added rule for tenant:kb-sys-easemob ruleId:kb-sys-default
+'storage.service.provider.list' property is empty, using default com.easemob.weichat.storage.NFSStorageProvider
+storage providers [com.easemob.weichat.storage.NFSStorageProvider@4492b393]
+[DEPRECATION] Encountered positional parameter near line 1, column 95 in HQL: [select r from com.easemob.weichat.models.entity.robot.RobotPredefinedReply r where r.tenantId=? and r.type=?].  Positional parameter are considered deprecated; use named parameters or JPA-style positional parameters instead.
+[DEPRECATION] Encountered positional parameter near line 1, column 108 in HQL: [select r from com.easemob.weichat.models.entity.robot.RobotPredefinedReply r where r.tenantId=? and r.type=?].  Positional parameter are considered deprecated; use named parameters or JPA-style positional parameters instead.
+[DEPRECATION] Encountered positional parameter near line 1, column 102 in HQL: [select count(r) from com.easemob.weichat.models.entity.robot.RobotPredefinedReply r where r.tenantId=? and r.type=?].  Positional parameter are considered deprecated; use named parameters or JPA-style positional parameters instead.
+[DEPRECATION] Encountered positional parameter near line 1, column 115 in HQL: [select count(r) from com.easemob.weichat.models.entity.robot.RobotPredefinedReply r where r.tenantId=? and r.type=?].  Positional parameter are considered deprecated; use named parameters or JPA-style positional parameters instead.
+kafka producer is not enabled, using mock producer instead
+'system.metrics' logger is not set to allow debug level output, metrics will not be report to logging system
+property 'reporter.ganglia.host' is not provided, metrics will not be reported to ganglia
+Started RobotMigration in 5.365 seconds (JVM running for 5.887)
+saved menu RobotMenu(id=28, menuId=13529bb5a19342f4988183dd3c8807a9, parentMenuId=0ce4886372374392868aa47f9b41ceeb, tenantId=1437, level=3, rootMenuId=02894e7870b046309a31f54da7c9a76a, menuName=三级选项, menuAnswerType=0, menuDesc=, hasTransferSubmenu=false, createdTime=2015-09-22 18:05:52.0, lastUpdatedTime=2015-10-27 17:30:44.0, children=null, isMatch=false) for tenant 1437 
+saved menu RobotMenu(id=29, menuId=47ace64a6c8d41aabc248e4c72c9d000, parentMenuId=0ce4886372374392868aa47f9b41ceeb, tenantId=1437, level=3, rootMenuId=02894e7870b046309a31f54da7c9a76a, menuName=三级选项, menuAnswerType=0, menuDesc=, hasTransferSubmenu=false, createdTime=2015-09-22 18:05:56.0, lastUpdatedTime=2015-10-26 11:11:23.0, children=null, isMatch=false) for tenant 1437 
+saved menu RobotMenu(id=185, menuId=e48715fda167448b9da142d8a78323ab, parentMenuId=7e1fe6feb34d4b55a201784611b367b8, tenantId=1441, level=3, rootMenuId=678530c1f8cf4ab2bc95d6638441eb84, menuName=ww, menuAnswerType=0, menuDesc=, hasTransferSubmenu=false, createdTime=2016-01-15 14:05:55.0, lastUpdatedTime=2016-01-19 20:23:19.0, children=null, isMatch=false) for tenant 1441 
+saved menu RobotMenu(id=186, menuId=441699295af445eb8790e76303ca61e4, parentMenuId=7e1fe6feb34d4b55a201784611b367b8, tenantId=1441, level=3, rootMenuId=678530c1f8cf4ab2bc95d6638441eb84, menuName=55, menuAnswerType=0, menuDesc=, hasTransferSubmenu=false, createdTime=2016-01-15 14:06:06.0, lastUpdatedTime=2016-01-19 20:23:19.0, children=null, isMatch=false) for tenant 1441 
+saved menu RobotMenu(id=183, menuId=9d6b9a5f3ba44bb892c2ddb19db121eb, parentMenuId=a1549c9d274f47e6899f9823727971e6, tenantId=1441, level=3, rootMenuId=678530c1f8cf4ab2bc95d6638441eb84, menuName=2222, menuAnswerType=0, menuDesc=, hasTransferSubmenu=false, createdTime=2016-01-15 14:00:36.0, lastUpdatedTime=2016-01-19 20:23:20.0, children=null, isMatch=false) for tenant 1441 
+Closing org.springframework.context.annotation.AnnotationConfigApplicationContext@2fd6b6c7: startup date [Tue Jan 19 20:26:38 CST 2016]; root of context hierarchy
+Closing JPA EntityManagerFactory for persistence unit 'default'

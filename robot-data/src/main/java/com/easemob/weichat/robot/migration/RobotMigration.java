@@ -8,11 +8,18 @@
  *******************************************************************************/
 package com.easemob.weichat.robot.migration;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 
+import com.easemob.weichat.models.entity.robot.RobotMenuRuleItem;
+import com.easemob.weichat.models.entity.robot.RobotRuleGroup;
 import com.easemob.weichat.service.robot.exception.RobotException;
 
 import lombok.extern.slf4j.Slf4j;
@@ -55,60 +62,112 @@ public class RobotMigration {
 //		migrateToES(args);
 		
 		// 6. all in one migration for 29
-		migrateAllDataInRobotDbByTenantId(args);
-		migrateMenuByTenantId(args);
-		migrateToES(args);
+//		migrateAllDataInRobotDbByTenantId(args);
+//		migrateMenuByTenantId(args);
+//		migrateToES(args);
 		
+		// 7. migrate menu rule item to rules
+		// change leaf menu answer type from menu(1) to text(0), level=3
+		migrateMenuRuleItemToRules(args);
     }
 	
-	/**
-     * @param args
-     */
-    private static void migrateAllDataInRobotDbByTenantId(String[] args) {
-        String INVALID_PARAM = "Good Examples: " + "Java -jar kefu-robot-data.jar 1441";
-        if(args.length < 1){
-            throw new RobotException(INVALID_PARAM);
-        }
-        
-        RobotMigrateAllDataService dataService = context.getBean(RobotMigrateAllDataService.class);
-        for (int i = 0; i < args.length; i++) {
-            String tenantIdStr = args[i];
-            int tenantId = Integer.parseInt(tenantIdStr);
-            dataService.migrateAlldata(tenantId);
+    private static void migrateMenuRuleItemToRules(String[] args) {
+        RobotMenuRuleItemDataService dataService = context.getBean(RobotMenuRuleItemDataService.class);
+        RobotRulesDataSerivce groupService = context.getBean(RobotRulesDataSerivce.class);
+        RobotMenuDataSerivce menuService = context.getBean(RobotMenuDataSerivce.class);
+        if(args.length > 0) {
+            // by tenant
+            for (int i = 0; i < args.length; i++) {
+                String tenantIdStr = args[i];
+                int tenantId = Integer.parseInt(tenantIdStr);
+                menuService.migrateMenuByTennantId(tenantId);
+                migrateMenuRuleItem(dataService, groupService, tenantId);
+            }
+        } else {
+            // all tenants
+            for (int i = 0; i < 20000; i++) {
+                menuService.migrateMenuByTennantId(i);
+                migrateMenuRuleItem(dataService, groupService, i);
+            }
         }
     }
 
-    private static void migrateToES(String[] args){
-	    String INVALID_PARAM = "Good Examples: " + "Java -jar kefu-robot-data.jar 1441";
-	    if(args.length < 1){
-            throw new RobotException(INVALID_PARAM);
+    private static void migrateMenuRuleItem(RobotMenuRuleItemDataService dataService,
+            RobotRulesDataSerivce groupService, int tenantId) {
+        Map<String, List<String>> rules = new HashMap<String, List<String>>();
+        List<RobotMenuRuleItem> list = dataService.getMenuRuleItemByTenantId(tenantId);
+        if(list == null || list.isEmpty()){
+            return;
         }
-	    MigrateXiaoIToES moveService = context.getBean(MigrateXiaoIToES.class);
-        for (int i = 0; i < args.length; i++) {
-            String tenantIdStr = args[i];
-            int tenantId = Integer.parseInt(tenantIdStr);
-            moveService.migrateXiaoIToES(tenantId);
+        for (RobotMenuRuleItem robotMenuRuleItem : list) {
+            String menuId = robotMenuRuleItem.getMenuId();
+            String question = robotMenuRuleItem.getQuestionKey();
+            List<String> questionList = rules.get(menuId);
+            if(questionList == null) {
+                questionList = new ArrayList<String>();
+            }
+            questionList.add(question);
+            rules.put(menuId, questionList);
         }
-	}
+        
+        for (String answer : rules.keySet()) {
+            List<String> questions = rules.get(answer);
+            if(questions != null && !questions.isEmpty()) {
+                RobotRuleGroup group = new RobotRuleGroup();
+                group.setTenantId(tenantId);
+                groupService.createRuleGroup(tenantId, group, questions.toArray(new String[questions.size()]), new String[]{answer});
+            }
+        }
+    }
+
+    /**
+     * @param args
+     */
+//    private static void migrateAllDataInRobotDbByTenantId(String[] args) {
+//        String INVALID_PARAM = "Good Examples: " + "Java -jar kefu-robot-data.jar 1441";
+//        if(args.length < 1){
+//            throw new RobotException(INVALID_PARAM);
+//        }
+//        
+//        RobotMigrateAllDataService dataService = context.getBean(RobotMigrateAllDataService.class);
+//        for (int i = 0; i < args.length; i++) {
+//            String tenantIdStr = args[i];
+//            int tenantId = Integer.parseInt(tenantIdStr);
+//            dataService.migrateAlldata(tenantId);
+//        }
+//    }
+//
+//    private static void migrateToES(String[] args){
+//	    String INVALID_PARAM = "Good Examples: " + "Java -jar kefu-robot-data.jar 1441";
+//	    if(args.length < 1){
+//            throw new RobotException(INVALID_PARAM);
+//        }
+//	    MigrateXiaoIToES moveService = context.getBean(MigrateXiaoIToES.class);
+//        for (int i = 0; i < args.length; i++) {
+//            String tenantIdStr = args[i];
+//            int tenantId = Integer.parseInt(tenantIdStr);
+//            moveService.migrateXiaoIToES(tenantId);
+//        }
+//	}
 
     private static void deleteAllRules() {
         RobotRulesDataSerivce dataService = context.getBean(RobotRulesDataSerivce.class);
 		dataService.deleteAllRules(1441);
     }
 
-    private static void migrateMenuByTenantId(String[] args) {
-        String INVALID_PARAM = "Good Examples: " + "Java -jar kefu-robot-migration.jar 1441";
-        RobotMenuMigrationSerivce migrationService = context.getBean(RobotMenuMigrationSerivce.class);
-
-		if(args.length < 1){
-			throw new RobotException(INVALID_PARAM);
-		}
-		for (int i = 0; i < args.length; i++) {
-		    String tenantIdStr = args[0];
-		    int tenantId = Integer.parseInt(tenantIdStr);
-		    migrationService.doMigrationFrom23To29ByTenantId(tenantId);
-		}
-    }
+//    private static void migrateMenuByTenantId(String[] args) {
+//        String INVALID_PARAM = "Good Examples: " + "Java -jar kefu-robot-migration.jar 1441";
+//        RobotMenuMigrationSerivce migrationService = context.getBean(RobotMenuMigrationSerivce.class);
+//
+//		if(args.length < 1){
+//			throw new RobotException(INVALID_PARAM);
+//		}
+//		for (int i = 0; i < args.length; i++) {
+//		    String tenantIdStr = args[0];
+//		    int tenantId = Integer.parseInt(tenantIdStr);
+//		    migrationService.doMigrationFrom23To29ByTenantId(tenantId);
+//		}
+//    }
     
     private static void exportAllTenantsData(String[] args) {
         String INVALID_PARAM = "Good Examples: " + "Java -jar kefu-robot-migration.jar /path/for/data '2015-11-01 00:00:00' '2015-11-30 23:59:59' ";

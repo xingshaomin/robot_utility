@@ -9,12 +9,15 @@ import org.springframework.stereotype.Service;
 import com.easemob.weichat.models.entity.robot.RobotRuleGroup;
 import com.easemob.weichat.service.robot.RobotRuleGroupService;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * 
  * @author shawn
  *
  */
 @Service
+@Slf4j
 public class RobotRulesDataSerivce{
     
 	@Autowired
@@ -29,5 +32,14 @@ public class RobotRulesDataSerivce{
         for (RobotRuleGroup robotRuleGroup : list) {
             robotRuleGroupService.delete(robotRuleGroup.getGroupId());
         }
+	}
+	
+	public void createRuleGroup(int tenantId, RobotRuleGroup group, String[] questions, String[] answers) {
+	    int id = robotRuleGroupService.insert(group, questions, answers);
+	    if(id > 0){
+	        log.info("successfully created rule group {}, with question {} and answer {}", group, questions, answers);
+	    } else {
+	        log.error("failed to create rule group {}, with question {} and answer {}", group, questions, answers);
+	    }
 	}
 }
