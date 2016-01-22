@@ -119,10 +119,12 @@ public class RobotMigration {
                 RobotRuleGroup group = new RobotRuleGroup();
                 group.setTenantId(tenantId);
                 RobotMenu menu = menuService.getRobotMenuById(menuId);
-                ObjectNode json = JSONUtil.getObjectMapper().createObjectNode();
-                json.put("menuId", menuId);
-                json.put("menuName", menu.getMenuName());
-                groupService.createRuleGroup(tenantId, group, questions.toArray(new String[questions.size()]), new String[]{json.toString()});
+                if(menu != null){
+                    ObjectNode json = JSONUtil.getObjectMapper().createObjectNode();
+                    json.put("menuId", menuId);
+                    json.put("menuName", menu.getMenuName());
+                    groupService.createRuleGroup(tenantId, group, questions.toArray(new String[questions.size()]), new String[]{json.toString()});
+                }
             }
         }
     }
