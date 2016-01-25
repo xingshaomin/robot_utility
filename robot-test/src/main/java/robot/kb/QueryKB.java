@@ -3,8 +3,8 @@ package robot.kb;
 import robot.GenUtil;
 
 public class QueryKB {
-	private static final String uid = "5779d0e95784470283ab43c8f2d13f05";
-	private static final String id = "c4bb18aec8ed4249a9a4d2e06402c567";
+	private static final String uid = "38490282ae77429dbe86a9bd2ab75d36";
+	private static final String id = "4d49973e77a948999bbf4d72978b0fb0";
 	public static void main( String[] args){
 		String curlCommandLine = GenUtil.getCurlCmd(GenUtil.GET, "/kb/custom/" + uid +  "/" + id);
 		System.out.println(curlCommandLine);

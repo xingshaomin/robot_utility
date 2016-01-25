@@ -4,7 +4,7 @@ import robot.GenUtil;
 
 public class QueryDefaultReplyCollection {
 
-	private static final String uid = "851a1e94c28a44b39f8860def309c1e4";
+	private static final String uid = "26d2835e2b134c55bebab31acfaa5405";
 
 	public static void main( String[] args){
     	String cmd = GenUtil.getCurlCmd(GenUtil.GET, "/conf/defaultreply/" + uid);
