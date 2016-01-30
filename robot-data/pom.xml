@@ -3,7 +3,7 @@
   <parent>
       <groupId>com.easemob.kefu</groupId>
       <artifactId>kefu-robot</artifactId>
-      <version>31.0.0-SNAPSHOT</version>
+      <version>37.0.0-SNAPSHOT</version>
   </parent>
   <artifactId>robot-data</artifactId>
   <name>kefu robot data</name>

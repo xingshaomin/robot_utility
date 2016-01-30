@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.easemob.weichat.models.entity.robot.RobotMenu;
-import com.easemob.weichat.models.enums.RobotMenuAnswerType;
+import com.easemob.weichat.models.enums.RobotAnswerForm;
 import com.easemob.weichat.persistence.jpa.robot.RobotMenuRepository;
 
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +33,7 @@ public class RobotMenuDataSerivce {
         List<RobotMenu> leafs = provider.findByTenantIdAndLevel(tenantId, 3);
         if(leafs != null) {
             for (RobotMenu robotMenu : leafs) {
-                robotMenu.setMenuAnswerType(RobotMenuAnswerType.TEXT.getValue());
+                robotMenu.setMenuAnswerType(RobotAnswerForm.TEXT.getValue());
                 provider.saveAndFlush(robotMenu);
                 log.info("saved menu {} for tenant {} ", robotMenu, tenantId);
             }
