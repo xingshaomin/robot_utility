@@ -155,6 +155,8 @@ public class RobotMigration {
                     json.put("menuName", menu.getMenuName());
                     log.info("create rule questions {} and answers {} for tenant {}", questions, json, tenantId);
                     groupService.createRuleGroup(tenantId, group, questions.toArray(new String[questions.size()]), new String[]{json.toString()});
+                } else {
+                    log.info("menu {} doesn't exist for tenant {}", menuId, tenantId);
                 }
             }
         }
