@@ -9,6 +9,7 @@
 package com.easemob.weichat.robot.migration;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,16 +79,42 @@ public class RobotMigration {
         RobotMenuRuleItemDataService dataService = context.getBean(RobotMenuRuleItemDataService.class);
         RobotRulesDataSerivce groupService = context.getBean(RobotRulesDataSerivce.class);
         RobotMenuDataSerivce menuService = context.getBean(RobotMenuDataSerivce.class);
-        if(args.length > 0) {
+        
+        String migrationTenantIdStr = context.getEnvironment().getProperty("kf.robot.migration");
+        log.info("migration tenant list is {}", migrationTenantIdStr);
+        String ignoreMigrationTenantIdStr = context.getEnvironment().getProperty("kf.robot.migration.ignore");
+        log.info("migration ignore tenant list is {}", ignoreMigrationTenantIdStr);
+        String[] tenantIds = migrationTenantIdStr.isEmpty()? null: migrationTenantIdStr.split(",");
+        String[] ignoreTenantIds = ignoreMigrationTenantIdStr.isEmpty() ? null : ignoreMigrationTenantIdStr.split(",");
+        
+        if(tenantIds != null && tenantIds.length > 0) {
             // by tenant
-            for (int i = 0; i < args.length; i++) {
-                String tenantIdStr = args[i];
-                int tenantId = Integer.parseInt(tenantIdStr);
-                migrateMenuRuleItem(dataService, groupService, menuService, tenantId);
+            for (int i = 0; i < tenantIds.length; i++) {
+                String tenantIdStr = tenantIds[i];
+                if(tenantIdStr.isEmpty()){
+                    continue;
+                }
+                try {
+                    int tenantId = Integer.parseInt(tenantIdStr);
+                    log.info("start migration for tenant {}", tenantId);
+                    migrateMenuRuleItem(dataService, groupService, menuService, tenantId);
+                } catch (Exception e) {
+                    log.error("tenant {} is not integer", tenantIdStr);
+                    log.error(e.getMessage(), e);
+                }
             }
         } else {
+            log.info("start migration all tenants but ignore {}", ignoreMigrationTenantIdStr);
+            List<String> ignoreTenantList = null;
+            if(ignoreTenantIds != null && ignoreTenantIds.length > 0){
+                ignoreTenantList = Arrays.asList(ignoreTenantIds);
+            }
             // all tenants
             for (int i = 0; i < 20000; i++) {
+                if(ignoreTenantList != null && ignoreTenantList.contains(String.valueOf(i))){
+                    log.info("ignore migration tenant {}", i);
+                    continue;
+                }
                 migrateMenuRuleItem(dataService, groupService, menuService, i);
             }
         }
@@ -100,6 +127,7 @@ public class RobotMigration {
         Map<String, List<String>> rules = new HashMap<String, List<String>>();
         List<RobotMenuRuleItem> list = dataService.getMenuRuleItemByTenantId(tenantId);
         if(list == null || list.isEmpty()){
+            log.debug("menu rule item is empty for tenant {}", tenantId);
             return;
         }
         for (RobotMenuRuleItem robotMenuRuleItem : list) {
@@ -112,6 +140,8 @@ public class RobotMigration {
             questionList.add(question);
             rules.put(menuId, questionList);
         }
+      
+        log.info("find rules {} for tenant {}", rules, tenantId);
         
         for (String menuId : rules.keySet()) {
             List<String> questions = rules.get(menuId);
@@ -123,6 +153,7 @@ public class RobotMigration {
                     ObjectNode json = JSONUtil.getObjectMapper().createObjectNode();
                     json.put("menuId", menuId);
                     json.put("menuName", menu.getMenuName());
+                    log.info("create rule questions {} and answers {} for tenant {}", questions, json, tenantId);
                     groupService.createRuleGroup(tenantId, group, questions.toArray(new String[questions.size()]), new String[]{json.toString()});
                 }
             }

@@ -35,7 +35,7 @@ public class RobotMenuDataSerivce {
             for (RobotMenu robotMenu : leafs) {
                 robotMenu.setMenuAnswerType(RobotAnswerForm.TEXT.getValue());
                 provider.saveAndFlush(robotMenu);
-                log.info("saved menu {} for tenant {} ", robotMenu, tenantId);
+                log.info("change type from menu to text for leaf menu {} for tenant {} ", robotMenu, tenantId);
             }
         }
     }
