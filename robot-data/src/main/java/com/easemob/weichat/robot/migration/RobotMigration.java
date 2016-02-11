@@ -60,7 +60,7 @@ public class RobotMigration {
 //      exportAllTenantsData(args);
 		
 		// 4. export data by tenantId
-//      exportDataByTenantId(args);
+		exportDataByTenantId(args);
 		
 		// 5. migrate xiaoi to ES
 //		migrateToES(args);
@@ -72,7 +72,7 @@ public class RobotMigration {
 		
 		// 7. migrate menu rule item to rules
 		// change leaf menu answer type from menu(1) to text(0), level=3
-		migrateMenuRuleItemToRules(args);
+//		migrateMenuRuleItemToRules(args);
     }
 	
     private static void migrateMenuRuleItemToRules(String[] args) {
@@ -192,10 +192,10 @@ public class RobotMigration {
 //        }
 //	}
 
-    private static void deleteAllRules() {
-        RobotRulesDataSerivce dataService = context.getBean(RobotRulesDataSerivce.class);
-		dataService.deleteAllRules(1441);
-    }
+//    private static void deleteAllRules() {
+//        RobotRulesDataSerivce dataService = context.getBean(RobotRulesDataSerivce.class);
+//		dataService.deleteAllRules(1441);
+//    }
 
 //    private static void migrateMenuByTenantId(String[] args) {
 //        String INVALID_PARAM = "Good Examples: " + "Java -jar kefu-robot-migration.jar 1441";
@@ -211,18 +211,18 @@ public class RobotMigration {
 //		}
 //    }
     
-    private static void exportAllTenantsData(String[] args) {
-        String INVALID_PARAM = "Good Examples: " + "Java -jar kefu-robot-migration.jar /path/for/data '2015-11-01 00:00:00' '2015-11-30 23:59:59' ";
-        if(args.length != 3){
-            throw new RobotException(INVALID_PARAM);
-        }
-        String path = args[0];
-        String start = args[1];
-        String end = args[2];
-        
-        ExportDataService exportService = context.getBean(ExportDataService.class);
-        exportService.exportAllTenantsData(path, start, end);
-    }
+//    private static void exportAllTenantsData(String[] args) {
+//        String INVALID_PARAM = "Good Examples: " + "Java -jar kefu-robot-migration.jar /path/for/data '2015-11-01 00:00:00' '2015-11-30 23:59:59' ";
+//        if(args.length != 3){
+//            throw new RobotException(INVALID_PARAM);
+//        }
+//        String path = args[0];
+//        String start = args[1];
+//        String end = args[2];
+//        
+//        ExportDataService exportService = context.getBean(ExportDataService.class);
+//        exportService.exportAllTenantsData(path, start, end);
+//    }
     
     private static void exportDataByTenantId(String[] args) {
         String INVALID_PARAM = "Good Examples: " + "Java -jar kefu-robot-migration.jar /path/for/data '2015-11-01 00:00:00' '2015-11-30 00:59:59' 1441 ... ";
