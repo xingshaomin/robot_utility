@@ -3,8 +3,8 @@ import robot.GenUtil;
 
 public class AskTest 
 {
-	private	static final String appKey = "huanxin_sFtXBkg0grZN";
-	private	static final String appSecret = "1GZAzO0GvLmtYQUwNjc7";
+	private	static final String appKey = "huanxin_bH0mwkCXoofn";
+	private	static final String appSecret = "PrRV3G0cewyceqJGQCYu";
 	
 	public static void main( String[] args){
     	String curlCmd = GenUtil.getAskCurlCmd(GenUtil.POST, "/ask.do", appKey, appSecret);
