@@ -20,7 +20,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 
 import com.easemob.weichat.models.entity.robot.RobotMenu;
-import com.easemob.weichat.models.entity.robot.RobotMenuRuleItem;
 import com.easemob.weichat.models.entity.robot.RobotRuleGroup;
 import com.easemob.weichat.models.util.JSONUtil;
 import com.easemob.weichat.service.robot.exception.RobotException;
@@ -72,21 +71,20 @@ public class RobotMigration {
 		
 		// 7. migrate menu rule item to rules
 		// change leaf menu answer type from menu(1) to text(0), level=3
-		migrateMenuRuleItemToRules(args);
+//		migrateMenuRuleItemToRules(args);
+		
+		// 8. migration robot profile from mysql to chat server redis
+		String migrationTenantIdStr = context.getEnvironment().getProperty("kf.robot.migration");
+		log.info("migration tenant list is {}", migrationTenantIdStr);
+		String ignoreMigrationTenantIdStr = context.getEnvironment().getProperty("kf.robot.migration.ignore");
+		log.info("migration ignore tenant list is {}", ignoreMigrationTenantIdStr);
+		String[] tenantIds = migrationTenantIdStr.isEmpty()? null: migrationTenantIdStr.split(",");
+		String[] ignoreTenantIds = ignoreMigrationTenantIdStr.isEmpty() ? null : ignoreMigrationTenantIdStr.split(",");
+		migrationProfileToChatServer(tenantIds, ignoreTenantIds);
     }
 	
-    private static void migrateMenuRuleItemToRules(String[] args) {
-        RobotMenuRuleItemDataService dataService = context.getBean(RobotMenuRuleItemDataService.class);
-        RobotRulesDataSerivce groupService = context.getBean(RobotRulesDataSerivce.class);
-        RobotMenuDataSerivce menuService = context.getBean(RobotMenuDataSerivce.class);
-        
-        String migrationTenantIdStr = context.getEnvironment().getProperty("kf.robot.migration");
-        log.info("migration tenant list is {}", migrationTenantIdStr);
-        String ignoreMigrationTenantIdStr = context.getEnvironment().getProperty("kf.robot.migration.ignore");
-        log.info("migration ignore tenant list is {}", ignoreMigrationTenantIdStr);
-        String[] tenantIds = migrationTenantIdStr.isEmpty()? null: migrationTenantIdStr.split(",");
-        String[] ignoreTenantIds = ignoreMigrationTenantIdStr.isEmpty() ? null : ignoreMigrationTenantIdStr.split(",");
-        
+    private static void migrationProfileToChatServer(String[] tenantIds, String[] ignoreTenantIds) {
+        MigrationProfileToRedisService migrationProfileService = context.getBean(MigrationProfileToRedisService.class);
         if(tenantIds != null && tenantIds.length > 0) {
             // by tenant
             for (int i = 0; i < tenantIds.length; i++) {
@@ -97,17 +95,17 @@ public class RobotMigration {
                 try {
                     int tenantId = Integer.parseInt(tenantIdStr);
                     log.info("start migration for tenant {}", tenantId);
-                    migrateMenuRuleItem(dataService, groupService, menuService, tenantId);
+                    migrationProfileService.migrationProfileToChatServer(tenantId);
                 } catch (Exception e) {
                     log.error("tenant {} is not integer", tenantIdStr);
                     log.error(e.getMessage(), e);
                 }
             }
         } else {
-            log.info("start migration all tenants but ignore {}", ignoreMigrationTenantIdStr);
             List<String> ignoreTenantList = null;
             if(ignoreTenantIds != null && ignoreTenantIds.length > 0){
                 ignoreTenantList = Arrays.asList(ignoreTenantIds);
+                log.info("start migration all tenants but ignore {} ", ignoreTenantList);
             }
             // all tenants
             for (int i = 0; i < 20000; i++) {
@@ -115,52 +113,97 @@ public class RobotMigration {
                     log.info("ignore migration tenant {}", i);
                     continue;
                 }
-                migrateMenuRuleItem(dataService, groupService, menuService, i);
+                migrationProfileService.migrationProfileToChatServer(i);
             }
         }
-    }
+        }
+//    private static void migrateMenuRuleItemToRules(String[] args) {
+//        RobotMenuRuleItemDataService dataService = context.getBean(RobotMenuRuleItemDataService.class);
+//        RobotRulesDataSerivce groupService = context.getBean(RobotRulesDataSerivce.class);
+//        RobotMenuDataSerivce menuService = context.getBean(RobotMenuDataSerivce.class);
+//        
+//        String migrationTenantIdStr = context.getEnvironment().getProperty("kf.robot.migration");
+//        log.info("migration tenant list is {}", migrationTenantIdStr);
+//        String ignoreMigrationTenantIdStr = context.getEnvironment().getProperty("kf.robot.migration.ignore");
+//        log.info("migration ignore tenant list is {}", ignoreMigrationTenantIdStr);
+//        String[] tenantIds = migrationTenantIdStr.isEmpty()? null: migrationTenantIdStr.split(",");
+//        String[] ignoreTenantIds = ignoreMigrationTenantIdStr.isEmpty() ? null : ignoreMigrationTenantIdStr.split(",");
+//        
+//        if(tenantIds != null && tenantIds.length > 0) {
+//            // by tenant
+//            for (int i = 0; i < tenantIds.length; i++) {
+//                String tenantIdStr = tenantIds[i];
+//                if(tenantIdStr.isEmpty()){
+//                    continue;
+//                }
+//                try {
+//                    int tenantId = Integer.parseInt(tenantIdStr);
+//                    log.info("start migration for tenant {}", tenantId);
+//                    migrateMenuRuleItem(dataService, groupService, menuService, tenantId);
+//                } catch (Exception e) {
+//                    log.error("tenant {} is not integer", tenantIdStr);
+//                    log.error(e.getMessage(), e);
+//                }
+//            }
+//        } else {
+//            log.info("start migration all tenants but ignore {}", ignoreMigrationTenantIdStr);
+//            List<String> ignoreTenantList = null;
+//            if(ignoreTenantIds != null && ignoreTenantIds.length > 0){
+//                ignoreTenantList = Arrays.asList(ignoreTenantIds);
+//            }
+//            // all tenants
+//            for (int i = 0; i < 20000; i++) {
+//                if(ignoreTenantList != null && ignoreTenantList.contains(String.valueOf(i))){
+//                    log.info("ignore migration tenant {}", i);
+//                    continue;
+//                }
+//                migrateMenuRuleItem(dataService, groupService, menuService, i);
+//            }
+//        }
+//    }
 
-    private static void migrateMenuRuleItem(RobotMenuRuleItemDataService dataService,
-            RobotRulesDataSerivce groupService, RobotMenuDataSerivce menuService, int tenantId) {
-        menuService.migrateMenuByTennantId(tenantId);
-        
-        Map<String, List<String>> rules = new HashMap<String, List<String>>();
-        List<RobotMenuRuleItem> list = dataService.getMenuRuleItemByTenantId(tenantId);
-        if(list == null || list.isEmpty()){
-            log.debug("menu rule item is empty for tenant {}", tenantId);
-            return;
-        }
-        for (RobotMenuRuleItem robotMenuRuleItem : list) {
-            String menuId = robotMenuRuleItem.getMenuId();
-            String question = robotMenuRuleItem.getQuestionKey();
-            List<String> questionList = rules.get(menuId);
-            if(questionList == null) {
-                questionList = new ArrayList<String>();
-            }
-            questionList.add(question);
-            rules.put(menuId, questionList);
-        }
-      
-        log.info("find rules {} for tenant {}", rules, tenantId);
-        
-        for (String menuId : rules.keySet()) {
-            List<String> questions = rules.get(menuId);
-            if(questions != null && !questions.isEmpty()) {
-                RobotRuleGroup group = new RobotRuleGroup();
-                group.setTenantId(tenantId);
-                RobotMenu menu = menuService.getRobotMenuById(menuId);
-                if(menu != null){
-                    ObjectNode json = JSONUtil.getObjectMapper().createObjectNode();
-                    json.put("menuId", menuId);
-                    json.put("menuName", menu.getMenuName());
-                    log.info("create rule questions {} and answers {} for tenant {}", questions, json, tenantId);
-                    groupService.createRuleGroup(tenantId, group, questions.toArray(new String[questions.size()]), new String[]{json.toString()});
-                } else {
-                    log.info("menu {} doesn't exist for tenant {}", menuId, tenantId);
-                }
-            }
-        }
-    }
+//    private static void migrateMenuRuleItem(RobotMenuRuleItemDataService dataService,
+//            RobotRulesDataSerivce groupService, RobotMenuDataSerivce menuService, int tenantId) {
+//        menuService.migrateMenuByTennantId(tenantId);
+//        
+//        Map<String, List<String>> rules = new HashMap<String, List<String>>();
+//        List<RobotMenuRuleItem> list = dataService.getMenuRuleItemByTenantId(tenantId);
+//        if(list == null || list.isEmpty()){
+//            log.debug("menu rule item is empty for tenant {}", tenantId);
+//            return;
+//        }
+//        for (RobotMenuRuleItem robotMenuRuleItem : list) {
+//            String menuId = robotMenuRuleItem.getMenuId();
+//            String question = robotMenuRuleItem.getQuestionKey();
+//            List<String> questionList = rules.get(menuId);
+//            if(questionList == null) {
+//                questionList = new ArrayList<String>();
+//            }
+//            questionList.add(question);
+//            rules.put(menuId, questionList);
+//        }
+//      
+//        log.info("find rules {} for tenant {}", rules, tenantId);
+//        
+//        for (String menuId : rules.keySet()) {
+//            List<String> questions = rules.get(menuId);
+//            if(questions != null && !questions.isEmpty()) {
+//                RobotRuleGroup group = new RobotRuleGroup();
+//                group.setTenantId(tenantId);
+//                RobotMenu menu = menuService.getRobotMenuById(menuId);
+//                if(menu != null){
+//                    ObjectNode json = JSONUtil.getObjectMapper().createObjectNode();
+//                    json.put("menuId", menuId);
+//                    json.put("menuName", menu.getMenuName());
+//                    log.info("create rule questions {} and answers {} for tenant {}", questions, json, tenantId);
+//                    groupService.createRuleGroup(tenantId, group, questions.toArray(new String[questions.size()]), new String[]{json.toString()});
+//                } else {
+//                    log.info("menu {} doesn't exist for tenant {}", menuId, tenantId);
+//                }
+//            }
+//        }
+//    }
+
 
     /**
      * @param args
@@ -192,10 +235,10 @@ public class RobotMigration {
 //        }
 //	}
 
-    private static void deleteAllRules() {
-        RobotRulesDataSerivce dataService = context.getBean(RobotRulesDataSerivce.class);
-		dataService.deleteAllRules(1441);
-    }
+//    private static void deleteAllRules() {
+//        RobotRulesDataSerivce dataService = context.getBean(RobotRulesDataSerivce.class);
+//		dataService.deleteAllRules(1441);
+//    }
 
 //    private static void migrateMenuByTenantId(String[] args) {
 //        String INVALID_PARAM = "Good Examples: " + "Java -jar kefu-robot-migration.jar 1441";

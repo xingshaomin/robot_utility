@@ -30,14 +30,14 @@ public class RobotMenuDataSerivce {
     private RobotMenuRepository provider;
     
     public void migrateMenuByTennantId(int tenantId) {
-        List<RobotMenu> leafs = provider.findByTenantIdAndLevel(tenantId, 3);
-        if(leafs != null) {
-            for (RobotMenu robotMenu : leafs) {
-                robotMenu.setMenuAnswerType(RobotAnswerForm.TEXT.getValue());
-                provider.saveAndFlush(robotMenu);
-                log.info("change type from menu to text for leaf menu {} for tenant {} ", robotMenu, tenantId);
-            }
-        }
+//        List<RobotMenu> leafs = provider.findByTenantIdAndLevel(tenantId, 3);
+//        if(leafs != null) {
+//            for (RobotMenu robotMenu : leafs) {
+//                robotMenu.setMenuAnswerType(RobotAnswerForm.TEXT.getValue());
+//                provider.saveAndFlush(robotMenu);
+//                log.info("change type from menu to text for leaf menu {} for tenant {} ", robotMenu, tenantId);
+//            }
+//        }
     }
     
     public RobotMenu getRobotMenuById(String menuId){
