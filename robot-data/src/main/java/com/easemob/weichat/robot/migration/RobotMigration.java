@@ -80,9 +80,49 @@ public class RobotMigration {
 		log.info("migration ignore tenant list is {}", ignoreMigrationTenantIdStr);
 		String[] tenantIds = migrationTenantIdStr.isEmpty()? null: migrationTenantIdStr.split(",");
 		String[] ignoreTenantIds = ignoreMigrationTenantIdStr.isEmpty() ? null : ignoreMigrationTenantIdStr.split(",");
-		migrationProfileToChatServer(tenantIds, ignoreTenantIds);
+//		migrationProfileToChatServer(tenantIds, ignoreTenantIds);
+		migrateXiaoIToES(tenantIds, ignoreTenantIds);
     }
 	
+    /**
+     * @param tenantIds
+     * @param ignoreTenantIds
+     */
+    private static void migrateXiaoIToES(String[] tenantIds, String[] ignoreTenantIds) {
+        MigrateXiaoIToESService migrationService = context.getBean(MigrateXiaoIToESService.class);
+        if(tenantIds != null && tenantIds.length > 0) {
+            // by tenant
+            for (int i = 0; i < tenantIds.length; i++) {
+                String tenantIdStr = tenantIds[i];
+                if(tenantIdStr.isEmpty()){
+                    continue;
+                }
+                try {
+                    int tenantId = Integer.parseInt(tenantIdStr);
+                    log.info("start migration for tenant {}", tenantId);
+                    migrationService.migrateXiaoIToES(tenantId);
+                } catch (Exception e) {
+                    log.error("tenant {} is not integer", tenantIdStr);
+                    log.error(e.getMessage(), e);
+                }
+            }
+        } else {
+            List<String> ignoreTenantList = null;
+            if(ignoreTenantIds != null && ignoreTenantIds.length > 0){
+                ignoreTenantList = Arrays.asList(ignoreTenantIds);
+                log.info("start migration all tenants but ignore {} ", ignoreTenantList);
+            }
+            // all tenants
+            for (int i = 0; i < 20000; i++) {
+                if(ignoreTenantList != null && ignoreTenantList.contains(String.valueOf(i))){
+                    log.info("ignore migration tenant {}", i);
+                    continue;
+                }
+                migrationService.migrateXiaoIToES(i);
+            }
+        }
+    }
+
     private static void migrationProfileToChatServer(String[] tenantIds, String[] ignoreTenantIds) {
         MigrationProfileToRedisService migrationProfileService = context.getBean(MigrationProfileToRedisService.class);
         if(tenantIds != null && tenantIds.length > 0) {
