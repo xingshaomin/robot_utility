@@ -141,24 +141,25 @@ public class ExportDataService {
     public void exportServiceSessionListAndSatisfaction(String path,
             List<ServiceSession> ssList) {
         for (ServiceSession serviceSession : ssList) {
-            log.info("start exporting service session {}", serviceSession.getServiceSessionId());
-            List<ChatMessage> msgs = getChatMessageByServiceSessionId(serviceSession.getTenantId(), serviceSession.getServiceSessionId());
-            if(msgs==null || msgs.isEmpty()){
-                return;
-            }
-            File d = new File(path+"/"+serviceSession.getTenantId());
-            if(!d.exists()){
-                d.mkdirs();
-            };
-            Date date = serviceSession.getCreateDatetime();
-            SimpleDateFormat formatter1 = new SimpleDateFormat("yyyyMMdd");
-            SimpleDateFormat formatter2 = new SimpleDateFormat("yyyyMMddHHmmssSSS");
-            String sencondPath = formatter1.format(date);
-            String fileName = formatter2.format(date);
-            
             List<Enquiry> enquiries = getEnquiriesByServiceSessionId(serviceSession.getTenantId(), serviceSession.getServiceSessionId());
-            writeToFile(d.getAbsolutePath(), sencondPath, fileName, msgs, enquiries);
-            log.info("finish writting service session {} into {}", serviceSession.getServiceSessionId(), d.getAbsolutePath() + "/" + sencondPath);
+            if(enquiries != null && enquiries.size() > 0){
+                log.info("start exporting service session {}", serviceSession.getServiceSessionId());
+                List<ChatMessage> msgs = getChatMessageByServiceSessionId(serviceSession.getTenantId(), serviceSession.getServiceSessionId());
+                if(msgs==null || msgs.isEmpty()){
+                    return;
+                }
+                File d = new File(path+"/"+serviceSession.getTenantId());
+                if(!d.exists()){
+                    d.mkdirs();
+                };
+                Date date = serviceSession.getCreateDatetime();
+                SimpleDateFormat formatter1 = new SimpleDateFormat("yyyyMMdd");
+                SimpleDateFormat formatter2 = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+                String sencondPath = formatter1.format(date);
+                String fileName = formatter2.format(date);
+                writeToFile(d.getAbsolutePath(), sencondPath, fileName, msgs, enquiries);
+                log.info("finish writting service session {} into {}", serviceSession.getServiceSessionId(), d.getAbsolutePath() + "/" + sencondPath);
+            }
         
         }
     }
